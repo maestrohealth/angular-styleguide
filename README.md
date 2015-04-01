@@ -1,26 +1,5 @@
 # Angular Style Guide
 
-*Opinionated Angular style guide for teams by [@john_papa](//twitter.com/john_papa)*
-
-If you are looking for an opinionated style guide for syntax, conventions, and structuring Angular applications, then step right in. These styles are based on my development experience with [Angular](//angularjs.org), presentations, [Pluralsight training courses](http://pluralsight.com/training/Authors/Details/john-papa) and working in teams.
-
-The purpose of this style guide is to provide guidance on building Angular applications by showing the conventions I use and, more importantly, why I choose them.
-
->If you like this guide, check out my [Angular Patterns: Clean Code](http://jpapa.me/ngclean) course at Pluralsight which is a companion to this guide.
-
-  [![AngularJs Patterns: Clean Code](https://raw.githubusercontent.com/johnpapa/angular-styleguide/master/assets/ng-clean-code-banner.png)](http://jpapa.me/ngclean)
-
-## Community Awesomeness and Credit
-Never work in a vacuum. I find that the Angular community is an incredible group who are passionate about sharing experiences. As such, a friend and Angular expert Todd Motto and I have collaborated on many styles and conventions. We agree on most, and some we diverge. I encourage you to check out [Todd's guidelines](https://github.com/toddmotto/angularjs-styleguide) to get a sense for his approach and how it compares.
-
-Many of my styles have been from the many pair programming sessions [Ward Bell](http://twitter.com/wardbell) and I have had. My friend Ward has certainly helped influence the ultimate evolution of this guide.
-
-## See the Styles in a Sample App
-While this guide explains the *what*, *why* and *how*, I find it helpful to see them in practice. This guide is accompanied by a sample application that follows these styles and patterns. You can find the [sample application (named modular) here](https://github.com/johnpapa/ng-demos) in the `modular` folder. Feel free to grab it, clone it, or fork it. [Instructions on running it are in its readme](https://github.com/johnpapa/ng-demos/tree/master/modular).
-
-##Translations
-[Translations of this Angular style guide](https://github.com/johnpapa/angular-styleguide/tree/master/i18n) are maintained by the community and can be found here.
-
 ## Table of Contents
 
   1. [Single Responsibility](#single-responsibility)
@@ -1711,127 +1690,6 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
 
 **[Back to top](#table-of-contents)**
 
-## Exception Handling
-
-### decorators
-###### [Style [Y110](#style-y110)]
-
-  - Use a [decorator](https://docs.angularjs.org/api/auto/service/$provide#decorator), at config time using the [`$provide`](https://docs.angularjs.org/api/auto/service/$provide) service, on the [`$exceptionHandler`](https://docs.angularjs.org/api/ng/service/$exceptionHandler) service to perform custom actions when exceptions occur.
-
-    *Why?*: Provides a consistent way to handle uncaught Angular exceptions for development-time or run-time.
-
-    Note: Another option is to override the service instead of using a decorator. This is a fine option, but if you want to keep the default behavior and extend it a decorator is recommended.
-
-    ```javascript
-    /* recommended */
-    angular
-        .module('blocks.exception')
-        .config(exceptionConfig);
-
-    exceptionConfig.$inject = ['$provide'];
-
-    function exceptionConfig($provide) {
-        $provide.decorator('$exceptionHandler', extendExceptionHandler);
-    }
-
-    extendExceptionHandler.$inject = ['$delegate', 'toastr'];
-
-    function extendExceptionHandler($delegate, toastr) {
-        return function(exception, cause) {
-            $delegate(exception, cause);
-            var errorData = {
-                exception: exception,
-                cause: cause
-            };
-            /**
-             * Could add the error to a service's collection,
-             * add errors to $rootScope, log errors to remote web server,
-             * or log locally. Or throw hard. It is entirely up to you.
-             * throw exception;
-             */
-            toastr.error(exception.msg, errorData);
-        };
-    }
-    ```
-
-### Exception Catchers
-###### [Style [Y111](#style-y111)]
-
-  - Create a factory that exposes an interface to catch and gracefully handle exceptions.
-
-    *Why?*: Provides a consistent way to catch exceptions that may be thrown in your code (e.g. during XHR calls or promise failures).
-
-    Note: The exception catcher is good for catching and reacting to specific exceptions from calls that you know may throw one. For example, when making an XHR call to retrieve data from a remote web service and you want to catch any exceptions from that service and react uniquely.
-
-    ```javascript
-    /* recommended */
-    angular
-        .module('blocks.exception')
-        .factory('exception', exception);
-
-    exception.$inject = ['logger'];
-
-    function exception(logger) {
-        var service = {
-            catcher: catcher
-        };
-        return service;
-
-        function catcher(message) {
-            return function(reason) {
-                logger.error(message, reason);
-            };
-        }
-    }
-    ```
-
-### Route Errors
-###### [Style [Y112](#style-y112)]
-
-  - Handle and log all routing errors using [`$routeChangeError`](https://docs.angularjs.org/api/ngRoute/service/$route#$routeChangeError).
-
-    *Why?*: Provides a consistent way to handle all routing errors.
-
-    *Why?*: Potentially provides a better user experience if a routing error occurs and you route them to a friendly screen with more details or recovery options.
-
-    ```javascript
-    /* recommended */
-    var handlingRouteChangeError = false;
-
-    function handleRoutingErrors() {
-        /**
-         * Route cancellation:
-         * On routing error, go to the dashboard.
-         * Provide an exit clause if it tries to do it twice.
-         */
-        $rootScope.$on('$routeChangeError',
-            function(event, current, previous, rejection) {
-                if (handlingRouteChangeError) { return; }
-                handlingRouteChangeError = true;
-                var destination = (current && (current.title ||
-                    current.name || current.loadedTemplateUrl)) ||
-                    'unknown target';
-                var msg = 'Error routing to ' + destination + '. ' +
-                    (rejection.msg || '');
-
-                /**
-                 * Optionally log using a custom service or $log.
-                 * (Don't forget to inject custom service)
-                 */
-                logger.warning(msg, [current]);
-
-                /**
-                 * On routing error, go to another route/state.
-                 */
-                $location.path('/');
-
-            }
-        );
-    }
-    ```
-
-**[Back to top](#table-of-contents)**
-
 ## Naming
 
 ### Naming Guidelines
@@ -1878,6 +1736,10 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
     // controllers
     avengers.controller.js
     avengers.controller.spec.js
+    
+    //controllers shortened
+    avengers.ctrl.js
+    avengers.ctrl.spec.js
 
     // services/factories
     logger.service.js
@@ -1925,7 +1787,7 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
     /**
      * recommended
      */
-    avengers.controller.spec.js
+    avengers.controller.spec.js //or .ctrl.spec.js...
     logger.service.spec.js
     avengers.routes.spec.js
     avenger-profile.directive.spec.js
@@ -1956,7 +1818,7 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
 ### Controller Name Suffix
 ###### [Style [Y124](#style-y124)]
 
-  - Append the controller name with the suffix `Controller`.
+  - Append the controller name with the suffix `Controller` or `Ctrl`.
 
     *Why?*: The `Controller` suffix is more commonly used and is more explicitly descriptive.
 
@@ -2042,68 +1904,6 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
 
 **[Back to top](#table-of-contents)**
 
-## Application Structure LIFT Principle
-### LIFT
-###### [Style [Y140](#style-y140)]
-
-  - Structure your app such that you can `L`ocate your code quickly, `I`dentify the code at a glance, keep the `F`lattest structure you can, and `T`ry to stay DRY. The structure should follow these 4 basic guidelines.
-
-    *Why LIFT?*: Provides a consistent structure that scales well, is modular, and makes it easier to increase developer efficiency by finding code quickly. Another way to check your app structure is to ask yourself: How quickly can you open and work in all of the related files for a feature?
-
-    When I find my structure is not feeling comfortable, I go back and revisit these LIFT guidelines
-
-    1. `L`ocating our code is easy
-    2. `I`dentify code at a glance
-    3. `F`lat structure as long as we can
-    4. `T`ry to stay DRY (Don’t Repeat Yourself) or T-DRY
-
-### Locate
-###### [Style [Y141](#style-y141)]
-
-  - Make locating your code intuitive, simple and fast.
-
-    *Why?*: I find this to be super important for a project. If the team cannot find the files they need to work on quickly, they will not be able to work as efficiently as possible, and the structure needs to change. You may not know the file name or where its related files are, so putting them in the most intuitive locations and near each other saves a ton of time. A descriptive folder structure can help with this.
-
-    ```
-    /bower_components
-    /client
-      /app
-        /avengers
-        /blocks
-          /exception
-          /logger
-        /core
-        /dashboard
-        /data
-        /layout
-        /widgets
-      /content
-      index.html
-    .bower.json
-    ```
-
-### Identify
-###### [Style [Y142](#style-y142)]
-
-  - When you look at a file you should instantly know what it contains and represents.
-
-    *Why?*: You spend less time hunting and pecking for code, and become more efficient. If this means you want longer file names, then so be it. Be descriptive with file names and keeping the contents of the file to exactly 1 component. Avoid files with multiple controllers, multiple services, or a mixture. There are deviations of the 1 per file rule when I have a set of very small features that are all related to each other, they are still easily identifiable.
-
-### Flat
-###### [Style [Y143](#style-y143)]
-
-  - Keep a flat folder structure as long as possible. When you get to 7+ files, begin considering separation.
-
-    *Why?*: Nobody wants to search 7 levels of folders to find a file. Think about menus on web sites … anything deeper than 2 should take serious consideration. In a folder structure there is no hard and fast number rule, but when a folder has 7-10 files, that may be time to create subfolders. Base it on your comfort level. Use a flatter structure until there is an obvious value (to help the rest of LIFT) in creating a new folder.
-
-### T-DRY (Try to Stick to DRY)
-###### [Style [Y144](#style-y144)]
-
-  - Be DRY, but don't go nuts and sacrifice readability.
-
-    *Why?*: Being DRY is important, but not crucial if it sacrifices the others in LIFT, which is why I call it T-DRY. I don’t want to type session-view.html for a view because, well, it’s obviously a view. If it is not obvious or by convention, then I name it.
-
-**[Back to top](#table-of-contents)**
 
 ## Application Structure
 
@@ -2112,23 +1912,12 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
 
   - Have a near term view of implementation and a long term vision. In other words, start small and but keep in mind on where the app is heading down the road. All of the app's code goes in a root folder named `app`. All content is 1 feature per file. Each controller, service, module, view is in its own file. All 3rd party vendor scripts are stored in another root folder and not in the `app` folder. I didn't write them and I don't want them cluttering my app (`bower_components`, `scripts`, `lib`).
 
-    Note: Find more details and reasoning behind the structure at [this original post on application structure](http://www.johnpapa.net/angular-app-structuring-guidelines/).
-
-### Layout
-###### [Style [Y151](#style-y151)]
-
-  - Place components that define the overall layout of the application in a folder named `layout`. These may include a shell view and controller may act as the container for the app, navigation, menus, content areas, and other regions.
-
-    *Why?*: Organizes all layout in a single place re-used throughout the application.
-
 ### Folders-by-Feature Structure
 ###### [Style [Y152](#style-y152)]
 
   - Create folders named for the feature they represent. When a folder grows to contain more than 7 files, start to consider creating a folder for them. Your threshold may be different, so adjust as needed.
 
     *Why?*: A developer can locate the code, identify what each file represents at a glance, the structure is flat as can be, and there is no repetitive nor redundant names.
-
-    *Why?*: The LIFT guidelines are all covered.
 
     *Why?*: Helps reduce the app from becoming cluttered through organizing the content and keeping them aligned with the LIFT guidelines.
 
@@ -2143,34 +1932,29 @@ While this guide explains the *what*, *why* and *how*, I find it helpful to see 
         app.module.js
         app.config.js
         components/
-            calendar.directive.js
-            calendar.directive.html
-            user-profile.directive.js
-            user-profile.directive.html
-        layout/
-            shell.html
-            shell.controller.js
-            topnav.html
-            topnav.controller.js
-        people/
-            attendees.html
-            attendees.controller.js
-            people.routes.js
-            speakers.html
-            speakers.controller.js
-            speaker-detail.html
-            speaker-detail.controller.js
-        services/
-            data.service.js
-            localstorage.service.js
-            logger.service.js
-            spinner.service.js
-        sessions/
-            sessions.html
-            sessions.controller.js
-            sessions.routes.js
-            session-detail.html
-            session-detail.controller.js
+          core/
+              /views
+                shell.html
+                topnav.html
+              /controllers
+                shell.ctrl.js
+                topnav.ctrl.js
+              /services
+                user.srv.js
+          people/
+              /views
+                attendees.html
+                speakers.html
+                speaker-detail.html
+              /controllers
+                attendees.ctrl.js
+                speaker-detail.ctrl.js
+                speakers.ctrl.js
+              /services
+                speakers.srv.js
+              people.routes.js
+              people.config.js
+              people.module.js
     ```
 
       ![Sample App Structure](https://raw.githubusercontent.com/johnpapa/angular-styleguide/master/assets/modularity-2.png)
@@ -2483,39 +2267,6 @@ Unit testing helps maintain clean code, as such I included some of my recommenda
 
 **[Back to top](#table-of-contents)**
 
-## Animations
-
-### Usage
-###### [Style [Y210](#style-y210)]
-
-  - Use subtle [animations with Angular](https://docs.angularjs.org/guide/animations) to transition between states for views and primary visual elements. Include the [ngAnimate module](https://docs.angularjs.org/api/ngAnimate). The 3 keys are subtle, smooth, seamless.
-
-    *Why?*: Subtle animations can improve User Experience when used appropriately.
-
-    *Why?*: Subtle animations can improve perceived performance as views transition.
-
-### Sub Second
-###### [Style [Y211](#style-y211)]
-
-  - Use short durations for animations. I generally start with 300ms and adjust until appropriate.
-
-    *Why?*: Long animations can have the reverse affect on User Experience and perceived performance by giving the appearance of a slow application.
-
-### animate.css
-###### [Style [Y212](#style-y212)]
-
-  - Use [animate.css](http://daneden.github.io/animate.css/) for conventional animations.
-
-    *Why?*: The animations that animate.css provides are fast, smooth, and easy to add to your application.
-
-    *Why?*: Provides consistency in your animations.
-
-    *Why?*: animate.css is widely used and tested.
-
-    Note: See this [great post by Matias Niemelä on Angular animations](http://www.yearofmoo.com/2013/08/remastered-animation-in-angularjs-1-2.html)
-
-**[Back to top](#table-of-contents)**
-
 ## Comments
 
 ### jsDoc
@@ -2780,137 +2531,6 @@ Unit testing helps maintain clean code, as such I included some of my recommenda
             INVENTORY_DEPLETED: 'event_inventory_depleted'
         });
     ```
-
-**[Back to top](#table-of-contents)**
-
-## File Templates and Snippets
-Use file templates or snippets to help follow consistent styles and patterns. Here are templates and/or snippets for some of the web development editors and IDEs.
-
-### Sublime Text
-###### [Style [Y250](#style-y250)]
-
-  - Angular snippets that follow these styles and guidelines.
-
-    - Download the [Sublime Angular snippets](assets/sublime-angular-snippets?raw=true)
-    - Place it in your Packages folder
-    - Restart Sublime
-    - In a JavaScript file type these commands followed by a `TAB`
-
-    ```javascript
-    ngcontroller // creates an Angular controller
-    ngdirective  // creates an Angular directive
-    ngfactory    // creates an Angular factory
-    ngmodule     // creates an Angular module
-    ngservice    // creates an Angular service
-    ngfilter     // creates an Angular filter
-    ```
-
-### Visual Studio
-###### [Style [Y251](#style-y251)]
-
-  - Angular file templates that follow these styles and guidelines can be found at [SideWaffle](http://www.sidewaffle.com)
-
-    - Download the [SideWaffle](http://www.sidewaffle.com) Visual Studio extension (vsix file)
-    - Run the vsix file
-    - Restart Visual Studio
-
-### WebStorm
-###### [Style [Y252](#style-y252)]
-
-  - Angular snippets and file templates that follow these styles and guidelines. You can import them into your WebStorm settings:
-
-    - Download the [WebStorm Angular file templates and snippets](assets/webstorm-angular-file-template.settings.jar?raw=true)
-    - Open WebStorm and go to the `File` menu
-    - Choose the `Import Settings` menu option
-    - Select the file and click `OK`
-    - In a JavaScript file type these commands followed by a `TAB`:
-
-    ```javascript
-    ng-c // creates an Angular controller
-    ng-f // creates an Angular factory
-    ng-m // creates an Angular module
-    ```
-
-### Atom
-###### [Style [Y253](#style-y253)]
-
-  - Angular snippets that follow these styles and guidelines.
-    ```
-    apm install angularjs-styleguide-snippets
-    ```
-    or
-    - Open Atom, then open the Package Manager (Packages -> Settings View -> Install Packages/Themes)
-    - Search for the package 'angularjs-styleguide-snippets'
-    - Click 'Install' to install the package
-
-  - In a JavaScript file type these commands followed by a `TAB`
-
-    ```javascript
-    ngcontroller // creates an Angular controller
-    ngdirective // creates an Angular directive
-    ngfactory // creates an Angular factory
-    ngmodule // creates an Angular module
-    ngservice // creates an Angular service
-    ngfilter // creates an Angular filter
-    ```
-
-### Brackets
-###### [Style [Y254](#style-y254)]
-
-  - Angular snippets that follow these styles and guidelines.
-    - Download the [Brackets Angular snippets](assets/brackets-angular-snippets.yaml?raw=true)
-    - Brackets Extension manager ( File > Extension manager )
-    - Install ['Brackets Snippets (by edc)'](https://github.com/chuyik/brackets-snippets)
-    - Click the light bulb in brackets' right gutter
-    - Click `Settings` and then `Import`
-    - Choose the file and select to skip or override
-    - Click `Start Import`
-
-  - In a JavaScript file type these commands followed by a `TAB`
-
-    ```javascript
-    // These are full file snippets containing an IIFE
-    ngcontroller // creates an Angular controller
-    ngdirective  // creates an Angular directive
-    ngfactory    // creates an Angular factory
-    ngapp        // creates an Angular module setter
-    ngservice    // creates an Angular service
-    ngfilter     // creates an Angular filter
-
-    // These are partial snippets intended to chained
-    ngmodule     // creates an Angular module getter
-    ngstate      // creates an Angular UI Router state defintion
-    ngconfig     // defines a configuration phase function
-    ngrun        // defines a run phase function
-    ngroute      // defines an Angular ngRoute 'when' definition
-    ngtranslate  // uses $translate service with its promise
-    ```
-
-**[Back to top](#table-of-contents)**
-
-## Yeoman Generator
-###### [Style [Y260](#style-y260)]
-
-You can use the [HotTowel yeoman generator](http://jpapa.me/yohottowel) to create an app that serves as a starting point for Angular that follows this style guide.
-
-1. Install generator-hottowel
-
-  ```
-  npm install -g generator-hottowel
-  ```
-
-2. Create a new folder and change directory to it
-
-  ```
-  mkdir myapp
-  cd myapp
-  ```
-
-3. Run the generator
-
-  ```
-  yo hottowel helloWorld
-  ```
 
 **[Back to top](#table-of-contents)**
 
